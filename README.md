@@ -6,14 +6,14 @@ L’objectiu d’aquesta tasca és practicar l’administració d’usuaris i gr
 
 ## Creació de la jerarquia de grups
 
-Les ordres següents creen els grups devs, sysadmin i auditor. Després es consulta /etc/group per comprovar els grups existents.
+Les ordres següents creen els grups devs, sysadmin i auditor.
 
 ![Creació de grups](Img/2026-10-07%2018_57_14-Oracle%20VirtualBox%20Gestor.png)
 ```bash
 sudo addgroup devs
 sudo addgroup sysadmin
 sudo addgroup auditor
-cat /etc/group
+
 ```
 
 Aquesta captura mostra el contingut del fitxer /etc/group, on es poden consultar els grups del sistema.
@@ -39,9 +39,7 @@ nano ~/benvinguda.txt
 En aquesta captura es veu el contingut escrit dins del fitxer de benvinguda.
 
 ![Fitxer de benvinguda](Img/normes%20i%20salutacions.png)
-```bash
-cat ~/benvinguda.txt
-```
+
 
 Es crea el directori Documents dins de l’estructura que s’utilitzarà per als nous usuaris.
 
