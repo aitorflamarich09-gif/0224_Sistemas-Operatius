@@ -55,6 +55,12 @@ S’entra al directori plantilla /etc/skel i s’edita el fitxer .bashrc per con
 cd /etc/skel
 sudo nano .bashrc
 ```
+Una vegada en el directori /etc/skel posem la comanda perque can posem alies ll surti  ls -la --color=auto
+![Configurant alias](/Img/Alias.png)
+```bash
+alias ll=
+```
+
 
 Es comprova que l’àlies ll executa ls -la --color=auto.
 
