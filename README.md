@@ -58,7 +58,7 @@ sudo nano .bashrc
 Una vegada en el directori /etc/skel posem la comanda perque can posem alies ll surti  ls -la --color=auto
 ![Configurant alias](/Img/Alias.png)
 ```bash
-alias ll=
+alias ll='ls -la --color=auto'
 ```
 
 
@@ -79,9 +79,7 @@ sudo nano /etc/adduser.conf
 En aquesta captura es comprova la ruta del shell Bash.
 
 ![Bash](Img/bin_bash.png)
-```bash
-cat /etc/adduser.conf
-```
+
 
 Es crea l’usuari de prova prova1.
 
@@ -90,7 +88,7 @@ Es crea l’usuari de prova prova1.
 sudo adduser prova1
 ```
 
-Es comprova el contingut del directori personal de l’usuari.
+Es comprova el contingut del directori personal de l’usuari que acabem de crear.
 
 ![Comprovació del nou usuari](Img/Comprobacio.png)
 ```bash
@@ -99,7 +97,7 @@ ls -la
 
 ## Creació i configuració d’usuaris
 
-Es creen els usuaris pau_dev i laura_dev, que s’utilitzaran per comprovar la configuració dels comptes i els grups.
+Ara creem els usuaris pau_dev i laura_dev.
 
 ![Creació de Pau i Laura](Img/Pau%20y%20laura.png)
 ```bash
@@ -107,12 +105,18 @@ sudo adduser pau_dev
 sudo adduser laura_dev
 ```
 
-Es creen els usuaris marc_sys i auditor.
+Es creen els usuaris marc_sys i auditor, amb les diferents comandes:
+- -M: Serveix per crear direcoris
+- -D: S'utilitza per marcar la ruta hon volem que estigui el direcortri
+- -S: Es per definir la terminal que ulizitzara
+- -G: Es per agregarlo al grup directament
+- -C: Serveix per si vols posar alguna descripico al conte 
 
 ![Creació de Marc i Auditor](Img/Cracio%20de%20Marc%20y%20Aditor.png)
 ```bash
-sudo adduser marc_sys
-sudo adduser auditor
+sudo useradd -m -d /home/marc_sys -s /bin/bash -g sysadmin -G devs -c "Marc Soler" marc_sys
+sudo useradd -m -d /home/auditor -s /bin/bash -g sysadmin -G devs -c "Marc Soler" auditor 
+
 ```
 
 S’afegeixen els usuaris als grups secundaris que els corresponen.
@@ -122,6 +126,8 @@ S’afegeixen els usuaris als grups secundaris que els corresponen.
 sudo usermod -aG devs pau_dev
 sudo usermod -aG devs laura_dev
 sudo usermod -aG devs marc_sys
+sudo usermod -aG auditor auditor
+
 ```
 
 ## Inspecció del sistema i fitxers de configuració
@@ -133,28 +139,32 @@ La comanda id permet comprovar l’identificador d’usuari, el grup principal i
 id marc_sys
 ```
 
-S’inicia una sessió com a pau_dev per comprovar l’accés amb aquest compte.
-
+S’inicia una sessió com a pau_dev per veure que tot esta bé.
 ![Iniciar sessió com Pau](Img/Inicair%20com%20pau.png)
 ```bash
 su pau_dev
 ```
 
-Es consulta /etc/passwd, que conté informació dels comptes d’usuari i el shell assignat.
+Es consulta /etc/passwd, que conté informació dels comptes d’usuari.
 
 ![Fitxer passwd](Img/Cat%20pau.png)
 ```bash
 cat /etc/passwd
 ```
 
-Es consulta /etc/shadow, on es desa informació protegida relacionada amb les contrasenyes dels comptes. Cal tenir permisos d’administrador per llegir-lo.
+Es consulta /etc/shadow,es el lloc hon estan les contraseñes guardades pero estan ecriptades per que la gent no la pugui llegir.
 
 ![Fitxer shadow](Img/cat%20pau%20shadow.png)
 ```bash
 sudo cat /etc/shadow
 ```
+Quin és el directori plantilla que s'utilitza per omplir el /home d'un usuari nou quan es crea? 
 
-El directori plantilla que s’utilitza per inicialitzar el directori personal d’un usuari nou és /etc/skel. La configuració del shell per defecte d’adduser es troba a /etc/adduser.conf, a la variable `DSHELL`.
+- El direcotri plantilla que s'utiliza es /etc/skel
+
+Quina comanda o fitxer en defineix aquesta configuració?
+
+- useradd -d
 
 ## Manteniment, bloqueig i eliminació
 
@@ -169,7 +179,7 @@ Es comprova l’estat del compte després de bloquejar-lo.
 
 ![Comprovació del bloqueig](Img/Comprobacio%20bloquar.png)
 ```bash
-sudo passwd -S pau_dev
+cat /etc/passwd
 ```
 
 Es desbloqueja el compte pau_dev amb passwd -u.
@@ -179,32 +189,41 @@ Es desbloqueja el compte pau_dev amb passwd -u.
 sudo passwd -u pau_dev
 ```
 
-S’elimina el compte auditor i el seu directori personal.
+S’elimina el compte auditor i el seu directori personal amb la comanda -r.
 
 ![Eliminar Auditor](Img/Eliminar%20auditor.png)
 ```bash
-sudo deluser --remove-home auditor
+sudo deluser -r auditor
 ```
 
 ## Personalització de l’entorn d’usuari
 
 S’instal·la el shell Fish mitjançant el gestor de paquets d’Ubuntu.
 
-![Instal·lar Fish](Img/Fish.png)
+
+![Instalar fish](/Img/Instalacion%20fish.png)
 ```bash
 sudo apt install fish
 ```
 
+
 Es canvia el shell per defecte de laura_dev a Fish.
 
-![Shell de Laura](Img/Su%20Laura.png)
+![Cambiar fish](Img/Fish.png)
 ```bash
 sudo chsh -s /usr/bin/fish laura_dev
 ```
 
 Finalment, s’inicia sessió com a laura_dev per comprovar que Fish s’executa correctament.
 
-![Comprovació final de Fish](Img/Fish%20final.png)
+![Shell de Laura](Img/Su%20Laura.png)
 ```bash
 su - laura_dev
+```
+
+Ara veurem shell que tenim posat en el conte de laura_dev
+
+![Comprovació final de Fish](Img/Fish%20final.png)
+```bash
+echo $SHELL
 ```
