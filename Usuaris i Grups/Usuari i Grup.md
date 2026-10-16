@@ -56,7 +56,7 @@ cd /etc/skel
 sudo nano .bashrc
 ```
 Una vegada en el directori /etc/skel posem la comanda perque can posem alies ll surti  ls -la --color=auto
-![Configurant alias](/Img/Alias.png)
+![Configurant alias](/Usuaris%20i%20Grups/Img/Alias.png)
 ```bash
 alias ll='ls -la --color=auto'
 ```
