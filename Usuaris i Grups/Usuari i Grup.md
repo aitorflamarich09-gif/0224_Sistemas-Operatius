@@ -201,7 +201,7 @@ sudo deluser -r auditor
 S’instal·la el shell Fish mitjançant el gestor de paquets d’Ubuntu.
 
 
-![Instalar fish](/Img/Instalacion%20fish.png)
+![Instalar fish](/Usuaris%20i%20Grups/Img/Instalacion%20fish.png)
 ```bash
 sudo apt install fish
 ```
