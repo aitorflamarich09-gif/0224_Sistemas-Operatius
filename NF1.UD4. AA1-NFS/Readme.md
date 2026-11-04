@@ -1,74 +1,186 @@
 ### Fase 1. Preparació de l'entorn
 
-Per al client utilitzarem Zorin OS 18 amb configuració de "xarxa NAT". El servidor tindrà una interfície amb "xarxa només-amb-amfitrió" i l'altra amb "xarxa NAT". Això permetrà que el client tingui accés a Internet i que el servidor pugui comunicar-se amb ell.
+Per al client utilitzarem Zorin OS 18 amb configuració de xarxa NAT. El servidor tindrà una interfície amb xarxa només amb amfitrió i l'altra amb xarxa NAT. Això permetrà que el client tingui accés a Internet i que el servidor pugui comunicar-se amb ell.
 
-Ens assegurarem que ambdues màquines tinguin accés a Internet i que es puguin comunicar entre elles a través de la xarxa només-amb-amfitrió. També actualitzarem els sistemes amb les últimes actualitzacions disponibles.
+Ens assegurarem que ambdues màquines tinguin accés a Internet i es puguin comunicar a través de la xarxa només amb amfitrió. També actualitzarem els sistemes.
+
+![Xarxa NAT de Zorin a VirtualBox](fotos/Xarxa_nat_Zorin.png)
+
+Sense comanda visible (captura de configuració gràfica).
+
+![Xarxa NAT d’Ubuntu a VirtualBox](fotos/Xarxa_nat_ubuntu.png)
+
+Sense comanda visible (captura de configuració gràfica).
 
 ### Fase 2: Preparació del servidor
 
-Abans de compartir recursos, hem de preparar els usuaris i els directoris al servidor.
+Abans de compartir recursos, preparem els usuaris, els grups i els directoris al servidor i al client.
 
-1. Creació de grups:
-   Crear dos grups per al client: `devs` i `admins`.
+1. Creació de grups: `devs` i `admins`.
 
-2. Creació d'usuaris:
-   Crear un usuari `dev01` (membre del grup `devs`).
+   **Servidor:**
+   ![Creació dels grups al servidor](fotos/01-grupos-servidor.png)
 
-3. Crear un usuari `admin01` (membre del grup `admins`).
+   ```bash
+   sudo addgroup devs && admins
+   sudo addgroup admins
+   ```
 
-4. Creació de directoris (al servidor):
-   - Crear el directori per als projectes de desenvolupament: `/srv/nfs/dev_projects`
-   - Crear el directori per a les eines d'administració: `/srv/nfs/admin_tools`
+   **Client:**
+   ![Creació dels grups al client](fotos/02-grupos-cliente.png)
 
-5. Permisos del servidor:
-   - Els developers tindran control sobre els seus projectes.
-   - Els administradors tindran control sobre les seves eines.
-   - En ambdós casos, l'usuari propietari serà `root`.
+   ```bash
+   sudo addgroup devs
+   sudo addgroup admins
+   ```
 
-6. Instal·lació del servei NFS.
+2. Creació d'usuaris `dev01` i `admin01`.
 
-> Nota: Perquè aquesta pràctica funcioni correctament, cal replicar aquests usuaris i grups al client i assegurar-se que UID i GID coincideixen a les dues màquines.
+   **Client — assignació als grups:**
+   ![Assignació de dev01 a devs i admin01 a admins al client](fotos/03-usuarios-grupos-cliente.png)
+
+   ```bash
+   sudo usermod -aG devs dev01
+   sudo usermod -aG admins admin01
+   ```
+
+   **Servidor — creació d'usuaris:**
+   ![Creació de dev01 i admin01 al servidor](fotos/04-usuarios-servidor.png)
+
+   ```bash
+   sudo adduser dev01
+   sudo adduser admin01
+   ```
+
+3. Creació de directoris al servidor:
+
+   ![Creació dels directoris al servidor](fotos/05-directorios-servidor.png)
+
+   ```bash
+   sudo mkdir -p /srv/nfs/devs_01
+   sudo mkdir -p /srv/nfs/admin_01
+   ```
+
+4. Comprovació de propietaris i permisos:
+
+   ![Comprovació de permisos dels directoris](fotos/06-permisos-directorios-servidor.png)
+
+   ```bash
+   ls -ld /srv/admins_projects
+   ls -ld /srv/dev_projects
+   ```
+
+5. Instal·lació del servei NFS al servidor i del client NFS al client.
+
+   **Servidor:**
+   ![Instal·lació del servidor NFS](fotos/07-instalacion-nfs-servidor.png)
+
+   ```bash
+   sudo apt install nfs-kernel-server
+   ```
+
+   **Client:**
+   ![Instal·lació del client NFS](fotos/08-instalacion-nfs-cliente.png)
+
+   ```bash
+   sudo apt install nfs-common
+   ```
+
+> Nota: Perquè aquesta pràctica funcioni correctament, cal replicar els usuaris i grups al client i assegurar que UID i GID coincideixen a les dues màquines.
 
 ### Fase 3: L'exportació d'administració (el dilema de `root_squash`)
 
-El client necessita que `/srv/nfs/admin_tools` sigui accessible per l'equip d'administradors. A vegades, l'usuari `root` del client necessitarà escriure en aquest directori per instal·lar eines. Aquí mostrarem un error típic i la seva solució.
+El client necessita accedir a `/srv/nfs/admin_tools`. Aquesta fase mostra la configuració de les exportacions i les proves des del client.
 
-#### Prova 1 (l'error comú)
+1. Al servidor, configurar i recarregar les exportacions NFS.
 
-1. Exportar el directori `/srv/nfs/admin_tools` amb les opcions `rw,sync`.
+   ![Configuració i recàrrega de les exportacions NFS](fotos/09-exportaciones-servidor.png)
 
-2. Des del client, muntar aquest recurs compartit a `/mnt/admin_tools`. Com a root del client, intentar crear un fitxer dins d'aquest directori muntat.
+   ```bash
+   sudo exportfs -ra
+   sudo exportfs -v
+   ```
 
-3. Verificar quin és el propietari del fitxer creat. Per què? Justificar la resposta amb l'explicació tècnica de `root_squash`.
+2. Al client, provar l'escriptura indicada a la captura.
 
-#### Prova 2 (la solució)
+   ![Prova d'escriptura denegada al client](fotos/10-prueba-root-squash-cliente.png)
 
-1. Modificar l'exportació del directori `/srv/nfs/admin_tools` per incloure l'opció `no_root_squash`.
+   ```bash
+   touch /mnt/dev_projects/prova_dev01.txt
+   ```
 
-2. Al client, desmuntar i tornar a muntar el recurs compartit.
+3. Al client, comprovar els recursos muntats.
 
-3. Com a root del client, intentar crear un fitxer dins d'aquest directori muntat. Observeu quin és el propietari del fitxer creat aquesta vegada. Ha canviat alguna cosa? Justificar la resposta amb l'explicació tècnica de `no_root_squash`.
+   ![Comprovació dels muntatges NFS al client](fotos/11-prueba-no-root-squash-cliente.png)
+
+   ```bash
+   findmnt /mnt/admin_tools
+   findmnt /mnt/dev_projects
+   ```
 
 ### Fase 4: L'exportació de desenvolupament (permisos `rw` vs `ro`)
 
-1. Editar `/etc/exports` per afegir dues exportacions per al mateix directori. El client vol que la xarxa d'administració pugui escriure-hi, però que la xarxa de consultors només la pugui llegir.
+1. Al client, provar de muntar el recurs NFS de desenvolupament.
 
-2. Des del client, muntar el recurs compartit a `/mnt/dev_projects` i provar d'escriure-hi com a usuari `dev01`.
+   ![Intent de muntatge del recurs NFS al client](fotos/12-exportacion-ro-servidor.png)
 
-3. Desmuntar el recurs i canviar la IP del client a 192.168.56.150. Tornar a provar d'escriure al directori muntat com a usuari `dev01` i comprovar que només funciona la lectura.
+   ```bash
+   sudo mount 10.0.2.4:/srv/dev_projects /mnt/dev_projects
+   ```
 
-4. Canvieu d'usuari al client a `admin01` i torneu a provar d'escriure al directori muntat. Comproveu que no es pot escriure, ja que `admin01` no és membre del grup `devs` i els permisos locals del sistema de fitxers no ho permeten.
+2. Com a `dev01`, provar d'escriure al directori compartit.
+
+   ![Escriptura de dev01 al directori compartit](fotos/13-prueba-dev01-cliente.png)
+
+   ```bash
+   touch /mnt/dev_projects/prova_dev01.txt
+   ```
+
+3. Com a administrador al client, comprovar la denegació d'escriptura.
+
+   ![Escriptura denegada al client](fotos/14-prueba-solo-lectura-cliente.png)
+
+   ```bash
+   sudo mkdir -p /mnt/dev_projects
+   touch /mnt/dev_projects/prova_admin.txt
+   ```
+
+4. Es pot desmuntar el recurs amb:
+
+   ![Desmuntatge del recurs NFS al client](fotos/19-desmuntar-recurs.png)
+
+   ```bash
+   sudo umount /mnt/dev_projects
+   ```
+
+5. Al servidor, assignar els grups propietaris com es mostra a la captura.
+
+   ![Assignació dels grups propietaris al servidor](fotos/17-comandos-chown-servidor.png)
+
+   ```bash
+   sudo chown root:devs /srv/nfs/dev_tools
+   sudo chown root:admins /srv/nfs/admin_tools
+   ```
 
 ### Fase 5: Muntatge automàtic amb `/etc/fstab`
 
-És evident que els usuaris no poden estar muntant manualment els recursos compartits cada vegada que reinicien el sistema. Per això, es configura el muntatge automàtic mitjançant `/etc/fstab` al client.
+1. Configurar les entrades NFS al fitxer `/etc/fstab` del client.
 
-1. Editar el fitxer `/etc/fstab` al client per afegir les entrades necessàries per muntar automàticament els recursos compartits NFS durant l'inici del sistema.
+   ![Configuració de fstab al client](fotos/18-configuracion-fstab-cliente.png)
 
-2. Executar la comanda `mount -a` per provar les entrades sense reiniciar.
+   ```text
+   192.168.56.101:/srv/admin_tools /mnt/admin_tools nfs defaults,_netdev 0 0
+   192.168.56.101:/srv/dev_projects /mnt/dev_projects nfs defaults,_netdev 0 0
+   ```
 
-3. Reiniciar el client i verificar que els recursos compartits s'han muntat correctament.
+2. Executar `mount -a` per provar les entrades sense reiniciar.
+
+   ![Prova de mount -a al client](fotos/16-mount-a-y-reinicio-cliente.png)
+
+   ```bash
+   sudo mount -a
+   ```
 
 ### Resum
 
-Aquest exercici demostra com configurar un servidor NFS amb usuaris, grups, permisos i exportacions, i com controlar l'accés amb `root_squash`, `no_root_squash`, i permisos `rw`/`ro`. La clau és que el sistema de fitxers local del client també aplica les seves pròpies regles de permisos i que NFS només determina qui pot accedir a l'estructura compartida des de la xarxa.
+L'exercici mostra la configuració bàsica d'un servidor NFS, els usuaris i grups, els permisos, les exportacions i el muntatge al client. Les captures i els comandos transcrits s'han conservat tal com apareixen a les evidències.
