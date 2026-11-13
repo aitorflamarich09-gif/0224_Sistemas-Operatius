@@ -23,6 +23,7 @@ Abans de compartir recursos, preparem els usuaris, els grups i els directoris al
    ```
 
    **Client:**
+
    ![Creació dels grups al client](fotos/02-grupos-cliente.png)
 
    ```bash
@@ -41,6 +42,7 @@ Abans de compartir recursos, preparem els usuaris, els grups i els directoris al
    ```
 
    **Servidor — creació d'usuaris:**
+
    ![Creació de dev01 i admin01 al servidor](fotos/04-usuarios-servidor.png)
 
    ```bash
@@ -76,6 +78,7 @@ Abans de compartir recursos, preparem els usuaris, els grups i els directoris al
    ```
 
    **Client:**
+   
    ![Instal·lació del client NFS](fotos/08-instalacion-nfs-cliente.png)
 
    ```bash
